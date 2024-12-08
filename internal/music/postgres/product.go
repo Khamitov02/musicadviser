@@ -10,9 +10,9 @@ import (
 )
 
 type Product struct {
-	ID    sql.NullString
-	Name  sql.NullString
-	Count sql.NullInt64
+	ID       sql.NullString
+	UserID   sql.NullString
+	BandName sql.NullString
 }
 
 type Storage struct {
@@ -26,18 +26,9 @@ func NewStorage(db *sqlx.DB) *Storage {
 }
 
 func (s *Storage) LoadProducts(ctx context.Context) ([]music.Product, error) {
-	// данные, которые будем получать, будем складировать в Product
-	// потом валидировать и переносить в то, что ожидает бизнес.
-
-	// Product -> fridgle.Product происходит на уровне работы БД.
-
-	//
-	// TODO: написать перекладывание Product -> fridgle.Product с валидацией
-	//
 	var dbProducts []Product
-	query := "SELECT ID, Name, Count FROM products" // create query string
+	query := "SELECT ID, user_id, band_name FROM music_bands"
 
-	// Execute query
 	err := s.db.SelectContext(ctx, &dbProducts, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to select products: %w", err)
@@ -45,20 +36,14 @@ func (s *Storage) LoadProducts(ctx context.Context) ([]music.Product, error) {
 
 	var products []music.Product
 	for _, dbProduct := range dbProducts {
-		if !dbProduct.ID.Valid {
-			return nil, fmt.Errorf("product ID is NULL")
-		}
-		if !dbProduct.Name.Valid {
-			return nil, fmt.Errorf("product Name is NULL")
-		}
-		if !dbProduct.Count.Valid {
-			return nil, fmt.Errorf("product Count is NULL")
+		if !dbProduct.ID.Valid || !dbProduct.UserID.Valid || !dbProduct.BandName.Valid {
+			return nil, fmt.Errorf("one of the required fields is NULL")
 		}
 
 		product := music.Product{
-			ID:    dbProduct.ID.String,
-			Name:  dbProduct.Name.String,
-			Count: uint(dbProduct.Count.Int64),
+			ID:       dbProduct.ID.String,
+			UserID:   dbProduct.UserID.String,
+			BandName: dbProduct.BandName.String,
 		}
 		products = append(products, product)
 	}
@@ -67,16 +52,29 @@ func (s *Storage) LoadProducts(ctx context.Context) ([]music.Product, error) {
 }
 
 func (s *Storage) SaveProduct(ctx context.Context, product music.Product) (id string, err error) {
+	// First check if this band already exists for this user
+	var exists bool
+	err = s.db.QueryRowContext(ctx, 
+		"SELECT EXISTS(SELECT 1 FROM music_bands WHERE user_id = $1 AND band_name = $2)",
+		product.UserID, product.BandName).Scan(&exists)
+	if err != nil {
+		return "", fmt.Errorf("failed to check band existence: %w", err)
+	}
+	if exists {
+		return "", fmt.Errorf("band %s already exists for user %s", product.BandName, product.UserID)
+	}
+
+	// If not exists, insert new record
 	query := `
-		INSERT INTO products (Name, Count)
+		INSERT INTO music_bands (user_id, band_name)
 		VALUES ($1, $2)
-		RETURNING ID
+		RETURNING id
 	`
 
 	var newID string
-	err = s.db.QueryRowContext(ctx, query, product.Name, product.Count).Scan(&newID)
+	err = s.db.QueryRowContext(ctx, query, product.UserID, product.BandName).Scan(&newID)
 	if err != nil {
-		return "", fmt.Errorf("failed to insert product: %w", err)
+		return "", fmt.Errorf("failed to insert band: %w", err)
 	}
 
 	return newID, nil

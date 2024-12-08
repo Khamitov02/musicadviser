@@ -5,9 +5,9 @@ import (
 )
 
 type Product struct {
-	ID    string
-	Name  string
-	Count uint
+	ID        string
+	UserID    string
+	BandName  string
 }
 
 type Service interface {
