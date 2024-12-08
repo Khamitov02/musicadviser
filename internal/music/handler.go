@@ -1,10 +1,10 @@
-package fridge
+package music
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
+	"log"
+	"net/http"
 )
 
 type Handler struct {
@@ -22,11 +22,12 @@ func NewHandler(router *chi.Mux, service Service) *Handler {
 func (h *Handler) Register() {
 	h.router.Group(func(r chi.Router) {
 		r.Get("/api/v1/products", h.getProducts)
-		r.Post("/api/v1/products", h.postProducts)
+		r.Post("/api/v1/putMusic", h.putMusic)
 	})
 }
 
 func (h *Handler) getProducts(w http.ResponseWriter, r *http.Request) {
+	log.Println("Touched handler GetProducts")
 	// validate r
 	data, err := h.service.Products(r.Context())
 	if err != nil {
@@ -37,6 +38,7 @@ func (h *Handler) getProducts(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "", data)
 }
 
-func (h *Handler) postProducts(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) putMusic(w http.ResponseWriter, r *http.Request) {
+	log.Println("Touched handler putMusic")
 
 }

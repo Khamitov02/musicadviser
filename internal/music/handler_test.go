@@ -1,11 +1,11 @@
-package fridge_test
+package music_test
 
 import (
 	"encoding/json"
+	"musicadviser/internal/music"
+	"musicadviser/internal/music/mock"
 	"net/http"
 	"net/http/httptest"
-	"sandbox/internal/fridge"
-	"sandbox/internal/fridge/mock"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -16,7 +16,7 @@ func TestHandler_getProducts(t *testing.T) {
 	service := mock.NewFridge()
 	router := chi.NewRouter()
 
-	h := fridge.NewHandler(router, service)
+	h := music.NewHandler(router, service)
 
 	h.Register()
 
@@ -35,13 +35,13 @@ func TestHandler_getProducts(t *testing.T) {
 	})
 
 	t.Run("body", func(t *testing.T) {
-		var got fridge.Product
+		var got music.Product
 		err := json.NewDecoder(rr.Body).Decode(&got)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		want := fridge.Product{
+		want := music.Product{
 			// заполнить данными из мока
 		}
 

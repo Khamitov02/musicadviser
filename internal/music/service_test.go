@@ -1,4 +1,4 @@
-package fridge_test
+package music_test
 
 // в тестах:
 // вместо мока использовать пакет memory (для мока БД)

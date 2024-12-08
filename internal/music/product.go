@@ -1,4 +1,4 @@
-package fridge
+package music
 
 import (
 	"context"
