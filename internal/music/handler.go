@@ -28,21 +28,36 @@ func NewHandler(router *chi.Mux, service Service) *Handler {
 
 func (h *Handler) Register() {
 	h.router.Group(func(r chi.Router) {
-		r.Get("/api/v1/products", h.getProducts)
+		r.Get("/api/v1/getMusic/{user_id}", h.getMusic)
 		r.Post("/api/v1/putMusic", h.putMusic)
 	})
 }
 
-func (h *Handler) getProducts(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Handler: GetProducts accessed - UserAgent: %s, RemoteAddr: %s", r.UserAgent(), r.RemoteAddr)
-	// validate r
-	data, err := h.service.Products(r.Context())
+func (h *Handler) getMusic(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Handler: GetMusic accessed - UserAgent: %s, RemoteAddr: %s", r.UserAgent(), r.RemoteAddr)
+	userID := chi.URLParam(r, "user_id")
+
+	// Fetch products for the specific user
+	products, err := h.service.Products(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Fprintf(w, "", data)
+	// Filter products by user_id
+	var userBands []string
+	for _, product := range products {
+		if product.UserID == userID {
+			userBands = append(userBands, product.BandName)
+		}
+	}
+
+	// Return the list of bands as JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(userBands); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *Handler) putMusic(w http.ResponseWriter, r *http.Request) {
