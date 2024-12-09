@@ -37,24 +37,14 @@ func (h *Handler) getMusic(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Handler: GetMusic accessed - UserAgent: %s, RemoteAddr: %s", r.UserAgent(), r.RemoteAddr)
 	userID := chi.URLParam(r, "user_id")
 
-	// Fetch products for the specific user
-	products, err := h.service.Products(r.Context())
+	bands, err := h.service.GetUserBands(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Filter products by user_id
-	var userBands []string
-	for _, product := range products {
-		if product.UserID == userID {
-			userBands = append(userBands, product.BandName)
-		}
-	}
-
-	// Return the list of bands as JSON
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(userBands); err != nil {
+	if err := json.NewEncoder(w).Encode(bands); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}

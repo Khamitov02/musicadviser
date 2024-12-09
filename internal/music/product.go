@@ -13,9 +13,11 @@ type Product struct {
 type Service interface {
 	Products(ctx context.Context) ([]Product, error)
 	Place(ctx context.Context, product Product) (id string, err error)
+	GetUserBands(ctx context.Context, userID string) ([]string, error)
 }
 
 type Store interface {
 	LoadProducts(ctx context.Context) ([]Product, error)
 	SaveProduct(ctx context.Context, product Product) (id string, err error)
+	GetUserBands(ctx context.Context, userID string) ([]string, error)
 }

@@ -79,3 +79,20 @@ func (s *Storage) SaveProduct(ctx context.Context, product music.Product) (id st
 
 	return newID, nil
 }
+
+func (s *Storage) GetUserBands(ctx context.Context, userID string) ([]string, error) {
+	var bands []string
+	query := `
+		SELECT band_name 
+		FROM music_bands 
+		WHERE user_id = $1
+		ORDER BY band_name
+	`
+
+	err := s.db.SelectContext(ctx, &bands, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select user bands: %w", err)
+	}
+
+	return bands, nil
+}
