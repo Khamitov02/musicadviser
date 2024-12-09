@@ -38,13 +38,6 @@ func (s *AppService) Place(ctx context.Context, product Product) (id string, err
 	return id, nil
 }
 
-func (s *AppService) GetUserBands(ctx context.Context, userID string) ([]string, error) {
-	bands, err := s.store.GetUserBands(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user bands: %w", err)
-	}
-	return bands, nil
-}
 
 func (s *AppService) GetAllUserBands(ctx context.Context) (UserBandsResponse, error) {
 	bands, err := s.store.GetAllUserBands(ctx)
