@@ -45,3 +45,11 @@ func (s *AppService) GetUserBands(ctx context.Context, userID string) ([]string,
 	}
 	return bands, nil
 }
+
+func (s *AppService) GetAllUserBands(ctx context.Context) (UserBandsResponse, error) {
+	bands, err := s.store.GetAllUserBands(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all user bands: %w", err)
+	}
+	return bands, nil
+}

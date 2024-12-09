@@ -28,23 +28,22 @@ func NewHandler(router *chi.Mux, service Service) *Handler {
 
 func (h *Handler) Register() {
 	h.router.Group(func(r chi.Router) {
-		r.Get("/api/v1/getMusic/{user_id}", h.getMusic)
+		r.Get("/api/v1/getMusic", h.getMusic)
 		r.Post("/api/v1/putMusic", h.putMusic)
 	})
 }
 
 func (h *Handler) getMusic(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Handler: GetMusic accessed - UserAgent: %s, RemoteAddr: %s", r.UserAgent(), r.RemoteAddr)
-	userID := chi.URLParam(r, "user_id")
-
-	bands, err := h.service.GetUserBands(r.Context(), userID)
+	
+	userBands, err := h.service.GetAllUserBands(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(bands); err != nil {
+	if err := json.NewEncoder(w).Encode(userBands); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}

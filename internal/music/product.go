@@ -10,14 +10,16 @@ type Product struct {
 	BandName  string
 }
 
+type UserBandsResponse map[string][]string  // userID -> list of bands
+
 type Service interface {
 	Products(ctx context.Context) ([]Product, error)
 	Place(ctx context.Context, product Product) (id string, err error)
-	GetUserBands(ctx context.Context, userID string) ([]string, error)
+	GetAllUserBands(ctx context.Context) (UserBandsResponse, error)
 }
 
 type Store interface {
 	LoadProducts(ctx context.Context) ([]Product, error)
 	SaveProduct(ctx context.Context, product Product) (id string, err error)
-	GetUserBands(ctx context.Context, userID string) ([]string, error)
+	GetAllUserBands(ctx context.Context) (UserBandsResponse, error)
 }

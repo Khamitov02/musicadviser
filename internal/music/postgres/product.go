@@ -96,3 +96,32 @@ func (s *Storage) GetUserBands(ctx context.Context, userID string) ([]string, er
 
 	return bands, nil
 }
+
+func (s *Storage) GetAllUserBands(ctx context.Context) (music.UserBandsResponse, error) {
+	query := `
+		SELECT user_id, band_name 
+		FROM music_bands 
+		ORDER BY user_id, band_name
+	`
+	
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query user bands: %w", err)
+	}
+	defer rows.Close()
+
+	response := make(music.UserBandsResponse)
+	for rows.Next() {
+		var userID, bandName string
+		if err := rows.Scan(&userID, &bandName); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		response[userID] = append(response[userID], bandName)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return response, nil
+}
